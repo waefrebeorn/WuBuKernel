@@ -120,9 +120,10 @@ void wubu_bus_detach_all(void)
     bus_acquire();
     for (int i = 0; i < ndevices; ++i) {
         wubu_device *dev = devices[i];
-        if (dev->state == WUBU_DEV_BOUND && dev->driver &&
-            dev->driver->detach) {
-            dev->driver->detach(dev);
+        /* A driver without a detach hook still loses its binding: clearing the
+         * state must not be conditional on the optional callback existing. */
+        if (dev->state == WUBU_DEV_BOUND && dev->driver) {
+            if (dev->driver->detach) dev->driver->detach(dev);
             dev->state = WUBU_DEV_IDLE;
             dev->driver = 0;
             dev->refcount = 0;
