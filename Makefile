@@ -8,15 +8,19 @@ INC     := -Iinclude
 
 FREESTANDING_INC := $(shell $(CC) -print-file-name=include)
 
-CORE    := src/wubukcore.c src/wubudriver.c src/wubukernel_pmm.c
+CORE    := src/wubukcore.c src/wubudriver.c src/wubukernel_pmm.c \
+           src/wubu_driver_contract.c
 TEST    := src/wubukernel_test.c
 PMMTEST := src/wubukernel_pmm_test.c
+CONTRACTTEST := src/wubu_driver_contract_test.c
 
 all: test
 
-test: build/test_wubukernel build/test_wubukernel_pmm
+test: build/test_wubukernel build/test_wubukernel_pmm \
+      build/test_wubu_driver_contract
 	./build/test_wubukernel
 	./build/test_wubukernel_pmm
+	./build/test_wubu_driver_contract
 
 build:
 	mkdir -p build
@@ -27,6 +31,10 @@ build/test_wubukernel: $(CORE) $(TEST) include/wubukcore.h include/wubudriver.h 
 build/test_wubukernel_pmm: src/wubukernel_pmm.c $(PMMTEST) include/wubukernel_pmm.h | build
 	$(CC) $(CFLAGS) $(INC) src/wubukernel_pmm.c $(PMMTEST) -o $@
 
+build/test_wubu_driver_contract: src/wubu_driver_contract.c $(CONTRACTTEST) \
+                                  include/wubu_driver_contract.h | build
+	$(CC) $(CFLAGS) $(INC) src/wubu_driver_contract.c $(CONTRACTTEST) -o $@
+
 # Proof the kernel pieces need no libc header: compiler's own include dir only.
 freestanding: | build
 	$(CC) -std=c11 -ffreestanding -nostdinc -isystem $(FREESTANDING_INC) $(INC) \
@@ -35,6 +43,8 @@ freestanding: | build
 	      -c src/wubudriver.c -o build/wubudriver.freestanding.o
 	$(CC) -std=c11 -ffreestanding -nostdinc -isystem $(FREESTANDING_INC) $(INC) \
 	      -c src/wubukernel_pmm.c -o build/wubukernel_pmm.freestanding.o
+	$(CC) -std=c11 -ffreestanding -nostdinc -isystem $(FREESTANDING_INC) $(INC) \
+	      -c src/wubu_driver_contract.c -o build/wubu_driver_contract.freestanding.o
 
 clean:
 	rm -rf build
