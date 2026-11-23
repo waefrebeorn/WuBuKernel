@@ -29,6 +29,24 @@
 /* MMIO page flags: present | writable (the wubu_vmm_map_page encoding). */
 #define WUBU_CONTRACT_MAP_FLAGS      3u
 
+/* Named MMIO flags for v2. Do not pass the integer 3 across the ABI. */
+#define WUBU_CONTRACT_FLAG_PRESENT        0x1u
+#define WUBU_CONTRACT_FLAG_WRITABLE       0x2u
+#define WUBU_CONTRACT_FLAG_CACHE_INHIBIT  0x4u
+
+/* BAR type encodings from bits [3:2] after the space bit is stripped. */
+#define WUBU_CONTRACT_BARTYPE_32BIT       0u
+#define WUBU_CONTRACT_BARTYPE_1MB         1u  /* legacy, rejected */
+#define WUBU_CONTRACT_BARTYPE_64BIT       2u  /* bits [3:2] == 10 */
+#define WUBU_CONTRACT_BARTYPE_RESERVED    3u  /* rejected */
+
+typedef struct {
+    uint64_t phys;               /* 64-bit base, type bits stripped */
+    uint64_t size;               /* aperture size from all-ones probe */
+    uint32_t type;               /* WUBU_CONTRACT_BARTYPE_* */
+    uint32_t flags;              /* named WUBU_CONTRACT_FLAG_* bits */
+} wubu_contract_bar_v2_t;
+
 /* Sentinel: no mapping established. */
 #define WUBU_CONTRACT_VA_UNMAPPED    0ull
 
@@ -42,6 +60,14 @@ enum wubu_contract_mmio_state {
  * physical page address. Returns 0 and writes *phys on success; -1 for
  * no BAR, an I/O-space BAR, or a null out pointer. */
 int wubu_contract_decode_bar(uint64_t bar0, uint64_t bar1, uint64_t *phys);
+
+/* v2: decode base + size from the all-ones probe readback. bar1_mask is
+ * the high dword probe for a 64-bit BAR. 0 on success, -1 on I/O BAR,
+ * reserved/legacy type, zero size, overflow, or null out pointer.
+ * The probe value has bit0 clear for memory space (see above). */
+int wubu_contract_decode_bar_v2(uint32_t bar0, uint32_t bar1,
+                                uint32_t bar0_probe, uint32_t bar1_probe,
+                                wubu_contract_bar_v2_t *out);
 
 /* 1 when the BAR describes a memory-space MMIO window. */
 int wubu_contract_is_mmio(uint64_t bar0);
