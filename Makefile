@@ -14,15 +14,18 @@ TEST    := src/wubukernel_test.c
 PMMTEST := src/wubukernel_pmm_test.c
 CONTRACTTEST := src/wubu_driver_contract_test.c
 ABITEST     := src/wubu_abi_test.c
+CAPTEST     := src/wubu_cap_test.c
 
 all: test
 
 test: build/test_wubukernel build/test_wubukernel_pmm \
-      build/test_wubu_driver_contract build/test_wubu_abi
+      build/test_wubu_driver_contract build/test_wubu_abi \
+      build/test_wubu_cap
 	./build/test_wubukernel
 	./build/test_wubukernel_pmm
 	./build/test_wubu_driver_contract
 	./build/test_wubu_abi
+	./build/test_wubu_cap
 
 build:
 	mkdir -p build
@@ -40,6 +43,9 @@ build/test_wubu_driver_contract: src/wubu_driver_contract.c $(CONTRACTTEST) \
 build/test_wubu_abi: src/wubu_abi.c $(ABITEST) include/wubu_abi.h | build
 	$(CC) $(CFLAGS) $(INC) src/wubu_abi.c $(ABITEST) -o $@
 
+build/test_wubu_cap: src/wubu_cap.c $(CAPTEST) include/wubu_cap.h | build
+	$(CC) $(CFLAGS) $(INC) src/wubu_cap.c $(CAPTEST) -o $@
+
 # Proof the kernel pieces need no libc header: compiler's own include dir only.
 freestanding: | build
 	$(CC) -std=c11 -ffreestanding -nostdinc -isystem $(FREESTANDING_INC) $(INC) \
@@ -52,6 +58,8 @@ freestanding: | build
 	      -c src/wubu_driver_contract.c -o build/wubu_driver_contract.freestanding.o
 	$(CC) -std=c11 -ffreestanding -nostdinc -isystem $(FREESTANDING_INC) $(INC) \
 	      -c src/wubu_abi.c -o build/wubu_abi.freestanding.o
+	$(CC) -std=c11 -ffreestanding -nostdinc -isystem $(FREESTANDING_INC) $(INC) \
+	      -c src/wubu_cap.c -o build/wubu_cap.freestanding.o
 
 clean:
 	rm -rf build
