@@ -39,3 +39,15 @@ docs/ARCHITECTURE.md   how the pieces fit
 ```
 
 WuBuOS consumes this repository as a submodule (`src/kernel/WuBuKernel`).
+
+## Standard
+
+- **Layer:** WuBuDriver model + wubukcore for the kernel
+- **Build:** `make`
+- **Verify:** `make test`
+- **Docs:** `docs/` in this repo
+- **Provenance:** own C11; no vendored third-party source without a note
+
+Part of the ~WuBu~ tree: this repository is held to the same conventions as
+the parent. See the parent's `docs/compendium/04-roadmap/submodule-standard.md`
+for the checklist and why each item exists.

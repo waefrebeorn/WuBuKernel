@@ -1,2 +1,6 @@
 build/
 *.o
+# build output: never let a .d file show up as untracked
+*.d
+*.a
+*.bin
